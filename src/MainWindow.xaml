@@ -4,9 +4,141 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:spiw"
+        xmlns:cc="clr-namespace:spiw.Controls"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="{Binding WindowTitle, Mode=OneWay}" 
+        Width="{Binding WindowWidth, Mode=TwoWay}"
+        Height="{Binding WindowHeight, Mode=TwoWay}"
+        MinWidth="{Binding WindowWidthMin, Mode=OneTime, FallbackValue=800}"
+        MinHeight="{Binding WindowHeightMin, Mode=OneTime, FallbackValue=600}">
+
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
+    </Window.Resources>
+    
     <Grid>
+        <cc:ImageWithTimer Source="{Binding ScreenPreviewImage, Mode=OneWay}"
+                           Stretch="Uniform"
+                           RenderOptions.BitmapScalingMode="Fant"
+                           IsTimerEnabled="{Binding IsImageUpdateTimerEnabled, Mode=OneWay}"
+                           TimerInterval="{Binding ScreenPreviewRefreshRate, Mode=OneWay}"
+                           TimerCommand="{Binding ImageUpdateTimerCommand, Mode=OneTime}">
+            <Image.InputBindings>
+                <MouseBinding Gesture="LeftDoubleClick" Command="{Binding OpenSettingPanelCommand, Mode=OneTime}"/>
+            </Image.InputBindings>
+        </cc:ImageWithTimer>
+        <!--<Image Source="{Binding ScreenPreviewImage, Mode=OneWay}"
+               Stretch="Uniform"
+               RenderOptions.BitmapScalingMode="Fant">
+            <Image.InputBindings>
+                <MouseBinding Gesture="LeftDoubleClick" Command="{Binding OpenSettingPanelCommand, Mode=OneTime}"/>
+            </Image.InputBindings>
+        </Image>-->
+
+        <Rectangle Fill="Black" Opacity="0.5" Visibility="{Binding IsSettingPanelVisible, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay, FallbackValue=Visible}"/>
+        
+        <Grid Width="600" Height="350"
+              HorizontalAlignment="Center" VerticalAlignment="Center" 
+              Background="White"
+              Visibility="{Binding IsSettingPanelVisible, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay, FallbackValue=Visible}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" MinWidth="150"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <Label Grid.Row="0" Grid.Column="0" 
+                   Margin="45,45,8,16" 
+                   HorizontalAlignment="Left" VerticalAlignment="Stretch" 
+                   Padding="8" 
+                   FontSize="16" FontWeight="Normal" 
+                   Content="Target screen"/>
+            <ComboBox Grid.Row="0" Grid.Column="1" 
+                      Margin="8,45,4,16" 
+                      HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
+                      Padding="8" 
+                      FontSize="16"
+                      ItemsSource="{Binding TargetScreens, Mode=OneWay}"
+                      SelectedItem="{Binding SelectedTargetScreen, Mode=TwoWay}"
+                      IsSynchronizedWithCurrentItem="True">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock>
+                            <TextBlock.Text>
+                                <MultiBinding StringFormat="{}{0} - {1} x {2}">
+                                    <Binding Path="FriendlyName"/>
+                                    <Binding Path="Width"/>
+                                    <Binding Path="Height"/>
+                                </MultiBinding>
+                            </TextBlock.Text>
+                        </TextBlock>
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
+            <Button Grid.Row="0" Grid.Column="2" 
+                    Margin="4,45,45,16" 
+                    HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
+                    Padding="8" 
+                    FontFamily="Segoe MDL2 Assets" FontSize="16" 
+                    Content="&#xE72C;"
+                    Command="{Binding UpdateTargetScreenListCommand, Mode=OneTime}"/>
+
+            <Label Grid.Row="1" Grid.Column="0" 
+                   Margin="45,16,8,16" 
+                   HorizontalAlignment="Left" VerticalAlignment="Stretch" 
+                   Padding="8" 
+                   FontSize="16" FontWeight="Normal" 
+                   Content="Refresh rate"/>
+            <Slider Grid.Row="1" Grid.Column="1" 
+                    Margin="8,16,8,16" 
+                    HorizontalAlignment="Stretch" VerticalAlignment="Center" 
+                    Minimum="{Binding ScreenPreviewRefreshRateMin, Mode=OneWay, FallbackValue=1}" 
+                    Maximum="{Binding ScreenPreviewRefreshRateMax, Mode=OneWay, FallbackValue=30}" 
+                    Value="{Binding ScreenPreviewRefreshRate, Mode=TwoWay, FallbackValue=15}" 
+                    SmallChange="1" Interval="1" TickFrequency="1" 
+                    TickPlacement="BottomRight" AutoToolTipPlacement="TopLeft"/>
+            <TextBlock Grid.Row="1" Grid.Column="2" 
+                       MinWidth="34"
+                       Margin="8,16,45,16" 
+                       HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
+                       Padding="8" 
+                       FontSize="16" 
+                       Text="{Binding ScreenPreviewRefreshRate, Mode=OneWay, FallbackValue=15}"/>
+
+            <Grid Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="3">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <Button Grid.Row="0" Grid.Column="0" 
+                        Margin="8,16,8,45" 
+                        HorizontalAlignment="Center" VerticalAlignment="Center" 
+                        Padding="50,8" 
+                        IsDefault="True" 
+                        FontSize="16" 
+                        Content="OK"
+                        Command="{Binding SettingPanelOkCommand, Mode=OneTime}"/>
+                <Button Grid.Row="0" Grid.Column="1" 
+                        Margin="8,16,8,45"
+                        HorizontalAlignment="Center" VerticalAlignment="Center" 
+                        Padding="50,8" 
+                        IsCancel="True" 
+                        FontSize="16" 
+                        Content="Cancel"
+                        Command="{Binding SettingPanelCancelCommand, Mode=OneTime}"/>
+            </Grid>
+        </Grid>
+        <Rectangle Width="600" Height="350" 
+                   HorizontalAlignment="Center" VerticalAlignment="Center" 
+                   Stroke="#333333" StrokeThickness="1"
+                   Visibility="{Binding IsSettingPanelVisible, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay, FallbackValue=Visible}"/>
 
     </Grid>
 </Window>
